@@ -16,9 +16,9 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
         
     '''
     
-    import urllib,urllib2
+    import urllib, urllib3
     import xmltodict
-    import cStringIO
+    import io
     import ogr, osr
     import time
     import os,os.path
@@ -76,7 +76,7 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
                 
                 time.sleep(0.05)
                 # the output result of the meta data is a xml object
-                metaDataxml = urllib2.urlopen(urlAddress)
+                metaDataxml = urllib3.urlopen(urlAddress)
                 metaData = metaDataxml.read()    
                 
                 data = xmltodict.parse(metaData)
@@ -93,7 +93,9 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
                     panoLat = panoInfo.items()[8][1]
                     panoLon = panoInfo.items()[9][1]
                     
-                    print 'The coordinate (%s,%s), panoId is: %s, panoDate is: %s'%(panoLon,panoLat,panoId, panoDate)
+
+                    var = 'The coordinate (%s,%s), panoId is: %s, panoDate is: %s' % (
+                    panoLon, panoLat, panoId, panoDate)
                     lineTxt = 'panoID: %s panoDate: %s longitude: %s latitude: %s\n'%(panoId, panoDate, panoLon, panoLat)
                     panoInfoText.write(lineTxt)
                     
