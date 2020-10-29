@@ -45,7 +45,7 @@ def Read_GSVinfo_Text(GVI_Res_txt):
             continue
         
         elif float(greenView) < 0:
-            print greenView
+            print(greenView)
             continue
         
         # remove the duplicated panorama id
@@ -107,7 +107,7 @@ def Read_GVI_res(GVI_Res):
             greenViewLst = greenViewLst + greenViewLst_tem
 
     else: #for single txt file
-        [panoIDLst_tem,panoDateLst_tem,panoLonLst_tem,panoLatLst_tem,greenViewLst_tem] = Read_GSVinfo_Text(txtfilename)
+        [panoIDLst_tem,panoDateLst_tem,panoLonLst_tem,panoLatLst_tem,greenViewLst_tem] = Read_GSVinfo_Text(GVI_Res)
 
 
     return panoIDLst,panoDateLst,panoLonLst,panoLatLst,greenViewLst
@@ -137,7 +137,7 @@ def CreatePointFeature_ogr(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList
     """
 
     import ogr
-    import osr
+    from osgeo import osr
 
     # create shapefile and add the above chosen random points to the shapfile
     driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -153,7 +153,7 @@ def CreatePointFeature_ogr(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList
     outLayer = data_source.CreateLayer(lyrname, targetSpatialRef, ogr.wkbPoint)
     numPnt = len(LonLst)
 
-    print 'the number of points is:',numPnt
+    print('the number of points is:',numPnt)
 
     if numPnt > 0:
         # create a field
@@ -195,7 +195,7 @@ def CreatePointFeature_ogr(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList
         data_source.Destroy()
 
     else:
-        print 'You created a empty shapefile'
+        print('You created a empty shapefile')
 
 
 
