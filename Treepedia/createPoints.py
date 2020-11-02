@@ -53,7 +53,7 @@ def createPoints(inshp, outshp, mini_dist):
                     continue
             except:
                 # if the street map is not osm, do nothing. You'd better to clean the street map, if you don't want to map the GVI for highways
-                key = dest.schema['properties'].keys()[0] # get the field of the input shapefile and duplicate the input feature
+                key = list(dest.schema['properties'].keys())[0] # get the field of the input shapefile and duplicate the input feature
                 i = feat['properties'][key]
                 if i in s:
                     continue
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     import os,os.path
     import sys
     
-    root = 'MYPATHH//spatial-data'
+    root = '../sample-spatialdata'
     inshp = os.path.join(root,'CambridgeStreet_wgs84.shp')
     outshp = os.path.join(root,'Cambridge20m.shp')
     mini_dist = 20 #the minimum distance between two generated points in meter
