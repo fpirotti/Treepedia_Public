@@ -1,13 +1,17 @@
 
 # This function is used to collect the metadata of the GSV panoramas based on the sample point shapefile
 
-# Copyright(C) Xiaojiang Li, Ian Seiferling, Marwa Abdulhai, Senseable City Lab, MIT 
+# Copyright(C) Xiaojiang Li, Ian Seiferling, Marwa Abdulhai, Senseable City Lab, MIT
+from urllib.request import urlopen
+
 
 def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
     '''
+    Input = shapefile con i punti; output=??
     This function is used to call the Google API url to collect the metadata of
     Google Street View Panoramas. The input of the function is the shpfile of the create sample site, the output
     is the generate panoinfo matrics stored in the text file
+
     
     Parameters: 
         samplesFeatureClass: the shapefile of the create sample sites
@@ -18,21 +22,21 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
     
     import urllib, urllib3
     import xmltodict
-    import io
-    import ogr
     from osgeo import osr
+    from osgeo import ogr
     import time
+    import math
     import os,os.path
     
     if not os.path.exists(ouputTextFolder):
         os.makedirs(ouputTextFolder)
-    
+
     driver = ogr.GetDriverByName('ESRI Shapefile')
     
     # change the projection of shapefile to the WGS84
     dataset = driver.Open(samplesFeatureClass)
     layer = dataset.GetLayer()
-    
+
     sourceProj = layer.GetSpatialRef()
     targetProj = osr.SpatialReference()
     targetProj.ImportFromEPSG(4326)
@@ -41,7 +45,7 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
     # loop all the features in the featureclass
     feature = layer.GetNextFeature()
     featureNum = layer.GetFeatureCount()
-    batch = featureNum/num
+    batch = math.ceil(featureNum/num)
     
     for b in range(batch):
         # for each batch process num GSV site
@@ -54,8 +58,8 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
         ouputGSVinfoFile = os.path.join(ouputTextFolder,ouputTextFile)
         
         # skip over those existing txt files
-        if os.path.exists(ouputGSVinfoFile):
-            continue
+        #if os.path.exists(ouputGSVinfoFile):
+        #    continue
         
         time.sleep(1)
         
@@ -68,8 +72,9 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
                 # trasform the current projection of input shapefile to WGS84
                 #WGS84 is Earth centered, earth fixed terrestrial ref system
                 geom.Transform(transform)
-                lon = geom.GetX()
-                lat = geom.GetY()
+                # NOTA ... NON DOVREBBE ESSERE COSI'
+                lat = geom.GetX()
+                lon = geom.GetY()
                 key = r'' #Input Your Key here 
                 
                 # get the meta data of panoramas 
@@ -77,7 +82,7 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
                 
                 time.sleep(0.05)
                 # the output result of the meta data is a xml object
-                metaDataxml = urllib3.urlopen(urlAddress)
+                metaDataxml = urlopen(urlAddress)
                 metaData = metaDataxml.read()    
                 
                 data = xmltodict.parse(metaData)
@@ -89,10 +94,10 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
                     panoInfo = data['panorama']['data_properties']
                                         
                     # get the meta data of the panorama
-                    panoDate = panoInfo.items()[4][1]
-                    panoId = panoInfo.items()[5][1]
-                    panoLat = panoInfo.items()[8][1]
-                    panoLon = panoInfo.items()[9][1]
+                    panoDate = list(panoInfo.items())[4][1]
+                    panoId =  list(panoInfo.items())[5][1]
+                    panoLat = list(panoInfo.items())[8][1]
+                    panoLon = list(panoInfo.items())[9][1]
                     
 
                     var = 'The coordinate (%s,%s), panoId is: %s, panoDate is: %s' % (
@@ -107,8 +112,8 @@ def GSVpanoMetadataCollector(samplesFeatureClass,num,ouputTextFolder):
 if __name__ == "__main__":
     import os, os.path
     
-    root = 'MYPATH/spatial-data'
-    inputShp = os.path.join(root,'Cambridge20m.shp')
+    root = '../sample-spatialdata'
+    inputShp = os.path.join(root,'PuntiRegolari20m_WGS84.shp')
     outputTxt = root
     
     GSVpanoMetadataCollector(inputShp,1000,outputTxt)
