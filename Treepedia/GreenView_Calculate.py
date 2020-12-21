@@ -172,9 +172,11 @@ def GreenViewComputing_ogr_6Horizon(GSVinfoFolder, outTXTRoot, greenmonth, key_f
     from PIL import Image
     import numpy as np
     import requests
+    import io
     try:
         from StringIO import StringIO  ## for Python 2
     except ImportError:
+        from io import BytesIO
         from io import StringIO
 
 
@@ -248,8 +250,8 @@ def GreenViewComputing_ogr_6Horizon(GSVinfoFolder, outTXTRoot, greenmonth, key_f
             
             # check whether the file already generated, if yes, skip. Therefore, you can run several process at same time using this code.
             print( GreenViewTxtFile)
-            if os.path.exists(GreenViewTxtFile):
-                continue
+            #if os.path.exists(GreenViewTxtFile):
+            #    continue
             
             # write the green view and pano info to txt            
             with open(GreenViewTxtFile,"w") as gvResTxt:
@@ -270,15 +272,21 @@ def GreenViewComputing_ogr_6Horizon(GSVinfoFolder, outTXTRoot, greenmonth, key_f
                         print ("Heading is: ",heading)
                         
                         # using different keys for different process, each key can only request 25,000 imgs every 24 hours
-                        URL = "http://maps.googleapis.com/maps/api/streetview?size=400x400&pano=%s&fov=60&heading=%d&pitch=%d&sensor=false&key=AIzaSyAwLr6Oz0omObrCJ4n6lI4VbCCvmaL1Z3Y"%(panoID,heading,pitch)
-                        
+                        URL = "http://maps.googleapis.com/maps/api/streetview?size=400x400&pano=%s&fov=60&heading=%d&pitch=%d&sensor=false&key=AIzaSyDvfSqURa60jKdXBEcL7hnwsvwEWhYgkm4"%(panoID,heading,pitch)
+                        fileName = os.path.join(outTXTRoot, "pano_%s_fov_60_heading_%d_pitch_%d.npy" % ( panoID, heading, pitch))
+
                         # let the code to pause by 1s, in order to not go over data limitation of Google quota
                         time.sleep(1)
                         
                         # classify the GSV images and calcuate the GVI
                         try:
-                            response = requests.get(URL)
-                            im = np.array(Image.open(StringIO(response.content)))
+                            ## e verificare se immagine esiste la carico da cartella
+                            if not os.path.exists(fileName):
+                                response = requests.get(URL)
+                                im = np.array(Image.open(BytesIO(response.content)))
+                                np.save(fileName, im)
+                            else:
+                                im = np.load(fileName)
                             percent = VegetationClassification(im)
                             greenPercent = greenPercent + percent
 
@@ -301,12 +309,13 @@ if __name__ == "__main__":
     
     import os,os.path
     import itertools
-    
-    
-    GSVinfoRoot = 'MYPATH//spatial-data/metadata'
-    outputTextPath = r'MYPATH//spatial-data/greenViewRes'
+
+
+    GSVinfoRoot = '../sample-spatialdata'
+    #outputTextPath = r'../spatial-data/greenViewRes'
+    outputTextPath = os.path.join(GSVinfoRoot,'greenViewRes')
     greenmonth = ['01','02','03','04','05','06','07','08','09','10','11','12']
-    key_file = 'MYPATH/Treepedia/Treepedia/keys.txt'
+    key_file = 'keys.txt'
     
     GreenViewComputing_ogr_6Horizon(GSVinfoRoot,outputTextPath, greenmonth, key_file)
 
